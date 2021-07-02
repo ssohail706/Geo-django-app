@@ -1,0 +1,41 @@
+{% load leaflet_tags %}
+{% leaflet_css %}
+{% leaflet_js %}
+
+<div>
+    <h1>{{ city.name }}</h1>
+    <p id="temp"></p>
+    <p id="humidity"></p>
+    <input type="submit" id="button" value="Click for Weather Information" onclick="weather_info();">
+    <br></br>
+    {% leaflet_map "main" callback="map_init" %}
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script type="text/javascript">
+    // get point lat and lon
+    var lon = "{{ city.geometry.x }}";
+    var lat = "{{ city.geometry.y }}";
+    function map_init(map, options) {
+        // zoom to point & add it to map
+        map.setView([lat, lon], 12);
+        L.marker([lat, lon]).addTo(map);
+    }
+    function weather_info(){
+        // Ajax function
+            $.ajax({
+                    type: "POST",
+                    url: '{{ 'weather/' }}',
+                    data: { csrfmiddlewaretoken: '{{ csrf_token }}', lon: lon, lat: lat },  
+                    success: function callback(response){
+                            json_res = JSON.parse(response);
+                            humidity = json_res["humidity"]
+                            temp = json_res["temp"]
+                            const tempData = document.getElementById('temp');
+                            const humidityData = document.getElementById('humidity');
+                            tempData.innerHTML = 'Temperature: ' +temp; 
+                            humidityData.innerHTML = 'Humidity: ' +humidity; 
+                            }
+                });
+    }
+</script>
